@@ -3,18 +3,36 @@ import React, { Children, useState } from "react";
 import Button from "../Button";
 
 import styles from "./ToastPlayground.module.css";
-import Toast from "../Toast/Toast";
+
+import ToastShelf from "../ToastShelf/ToastShelf";
 
 const VARIANT_OPTIONS = ["notice", "warning", "success", "error"];
 
 function ToastPlayground() {
   const [message, setMessage] = useState("");
   const [variant, setVariant] = useState(VARIANT_OPTIONS[0]);
-  const [isRender, setIsRender] = useState(false);
+  const [toasts, setToasts] = useState([]);
 
-  const handleDismiss = () => {
-    setIsRender(false);
+  const handleCreateToast = (e) => {
+    e.preventDefault();
+    const newToast = [
+      ...toasts,
+      {
+        id: crypto.randomUUID(),
+        message,
+        variant,
+      },
+    ];
+    setToasts(newToast);
+
+    // clear the input forms
     setMessage("");
+    setVariant(VARIANT_OPTIONS[0]);
+  };
+
+  const handleDismiss = (id) => {
+    const newToasts = toasts.filter((toast) => toast.id !== id);
+    setToasts(newToasts);
   };
 
   return (
@@ -23,13 +41,10 @@ function ToastPlayground() {
         <img alt="Cute toast mascot" src="/toast.png" />
         <h1>Toast Playground</h1>
       </header>
-      {isRender && (
-        <Toast variant={variant} handleDismiss={handleDismiss}>
-          {message}
-        </Toast>
-      )}
 
-      <div className={styles.controlsWrapper}>
+      <ToastShelf toasts={toasts} handleDismiss={handleDismiss} />
+
+      <form onSubmit={handleCreateToast} className={styles.controlsWrapper}>
         <div className={styles.row}>
           <label
             htmlFor="message"
@@ -43,9 +58,7 @@ function ToastPlayground() {
               id="message"
               className={styles.messageInput}
               value={message}
-              onChange={(e) => {
-                setMessage(e.target.value);
-              }}
+              onChange={(e) => setMessage(e.target.value)}
             />
           </div>
         </div>
@@ -75,16 +88,10 @@ function ToastPlayground() {
         <div className={styles.row}>
           <div className={styles.label} />
           <div className={`${styles.inputWrapper} ${styles.radioWrapper}`}>
-            <Button
-              onClick={() => {
-                setIsRender(true);
-              }}
-            >
-              Pop Toast!
-            </Button>
+            <Button>Pop Toast!</Button>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
